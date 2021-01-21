@@ -9,7 +9,7 @@
           v-for="(container, slideContainerIndex) in slideContainer"
           :key="container"
           class="slide-container"
-          :class="[slideContainerIndex%3 === 1 ? 'middle' : '']"
+          :class="[slideContainerIndex % 3 === 1 ? 'middle' : '']"
           v-on:transitionend="containerTransition"
         >
           <div
@@ -21,9 +21,13 @@
             :id="'slide-'+container+'-'+contentIndex"
             :data-container-index="slideContainerIndex"
             :data-content-index="contentIndex"
-            class="slide"
           >
-            {{ content }}
+            <div
+              class="slide"
+              :style="{ backgroundImage: 'url(' + content.Poster + ')', backgroundSize: 'cover', border: '1px solid ' + getBorderStyle(content.Source) }"
+            >
+            </div>
+            <a :href="content.Url" target="_blank" :style="{ color: 'white', textAlign: 'left', textDecoration: 'none' }">{{ content.Title }}</a>
           </div>
         </div>
       </transition-group>
@@ -36,21 +40,24 @@ import _ from 'lodash'
 
 export default {
   name: 'Slider',
+  props: {
+    items: Array
+  },
   directives: {
     mouse: {
       bind(el, binding) {
         if (binding.value.position === 1) {
-          el.addEventListener(binding.arg, binding.value.handler);
+          el.addEventListener(binding.arg, binding.value.handler)
         }
       },
       update(el, binding) {
         if (binding.value.position === 1) {
-          el.addEventListener(binding.arg, binding.value.handler);
+          el.addEventListener(binding.arg, binding.value.handler)
         } else {
-          el.removeEventListener(binding.arg, binding.value.handler);
+          el.removeEventListener(binding.arg, binding.value.handler)
         }
-      },
-    },
+      }
+    }
   },
   data() {
     return {
@@ -63,10 +70,8 @@ export default {
       slideContainer: [-1, 0, 1],
       contentContainer: [],
       contentContainerSize: 6,
-      contentData:
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
-      infinityLoop: false,
-    };
+      infinityLoop: false
+    }
   },
   methods: {
     left: _.debounce(function slideLeft() {
@@ -74,183 +79,195 @@ export default {
         this.isSliding = true;
         // Infinity loop
         if (this.slideContainer[0] === 0) {
-          const page = this.contentContainer.length - 1;
-          this.slideContainer.unshift(page);
+          const page = this.contentContainer.length - 1
+          this.slideContainer.unshift(page)
         } else {
-          this.slideContainer.unshift(this.slideContainer[0] - 1);
+          this.slideContainer.unshift(this.slideContainer[0] - 1)
         }
         this.slideContainer.pop();
-        this.setColor(this.slideContainer[0]);
+        this.setColor(this.slideContainer[0])
       }
     }, 300),
     right: _.debounce(function slideRight() {
       if (!this.expandShowcase && _.last(this.slideContainer) < this.contentContainer.length) {
-        this.isSliding = true;
-        this.infinityLoop = true;
+        this.isSliding = true
+        this.infinityLoop = true
         // Infinity loop
         if (_.last(this.slideContainer) === this.contentContainer.length - 1) {
-          const page = (this.contentContainer.length - _.last(this.slideContainer)) - 1;
-          this.slideContainer.push(page);
+          const page = (this.contentContainer.length - _.last(this.slideContainer)) - 1
+          this.slideContainer.push(page)
         } else {
-          this.slideContainer.push(_.last(this.slideContainer) + 1);
+          this.slideContainer.push(_.last(this.slideContainer) + 1)
         }
-        this.slideContainer.shift();
-        this.setColor(_.last(this.slideContainer));
+        this.slideContainer.shift()
+        this.setColor(_.last(this.slideContainer))
       }
     }, 300),
     selectSlide(event) {
       this.timeoutID = setTimeout(() => {
         if (!this.isSliding && !this.expandShowcase) {
-          const selectedSlide = event.target;
-          this.selectedSlidePos = this.slideIsFirstOrLast(selectedSlide);
-          const transitionDistance = this.transitionDistance(selectedSlide);
-          const selectedContainer = this.containerIndex(selectedSlide);
-          this.popShowcase(selectedSlide);
+          const selectedSlide = event.target
+          this.selectedSlidePos = this.slideIsFirstOrLast(selectedSlide)
+          const transitionDistance = this.transitionDistance(selectedSlide)
+          const selectedContainer = this.containerIndex(selectedSlide)
+          this.popShowcase(selectedSlide)
           const animationCallback = (currentSlide) => {
             if (currentSlide !== selectedSlide) {
-              const currentContainer = this.containerIndex(currentSlide);
-              let direction = 0;
+              const currentContainer = this.containerIndex(currentSlide)
+              let direction = 0
               if (this.selectedSlidePos.isFirst) {
                 if (currentContainer >= 1) {
-                  direction = 1;
+                  direction = 1
                 }
               } else if (this.selectedSlidePos.isLast) {
                 if (currentContainer <= 1) {
-                  direction = -1;
+                  direction = -1
                 }
               } else if (currentContainer === selectedContainer) {
                 direction =
-                this.contentIndex(currentSlide) < this.contentIndex(selectedSlide) ? 1 : -1;
+                this.contentIndex(currentSlide) < this.contentIndex(selectedSlide) ? 1 : -1
               } else {
-                direction = currentContainer < 1 ? 1 : -1;
+                direction = currentContainer < 1 ? 1 : -1
               }
-              this.setStyleProperty(currentSlide, { transform: `translateX(${transitionDistance * direction}px)` });
+              this.setStyleProperty(currentSlide, { transform: `translateX(${transitionDistance * direction}px)` })
             }
           };
-          this.animateSlideTransition(animationCallback);
+          this.animateSlideTransition(animationCallback)
         }
-      }, 300);
+      }, 300)
     },
     unselectSlide() {
       clearTimeout(this.timeoutID);
     },
     containerIndex(element) {
-      return element.dataset.containerIndex * 1;
+      return element.dataset.containerIndex * 1
     },
     contentIndex(element) {
-      return element.dataset.contentIndex * 1;
+      return element.dataset.contentIndex * 1
     },
     slideIsFirstOrLast(element) {
       return {
         isFirst: this.slideIsFirst(element),
-        isLast: this.slideIsLast(element),
-      };
+        isLast: this.slideIsLast(element)
+      }
     },
     slideIsFirst(element) {
-      return this.contentIndex(element) === 0;
+      return this.contentIndex(element) === 0
     },
     slideIsLast(element) {
-      const containerIndex = this.containerIndex(element);
-      return this.contentIndex(element) === this.contentContainer[containerIndex].length - 1;
+      const containerIndex = this.containerIndex(element)
+      return this.contentContainer[containerIndex] && this.contentIndex(element) === this.contentContainer[containerIndex].length - 1 || false
     },
     transitionDistance(element) {
       if (this.selectedSlidePos.isFirst || this.selectedSlidePos.isLast) {
-        return element.clientWidth * (this.ratio - 1);
+        return element.clientWidth * (this.ratio - 1)
       }
-      return element.clientWidth * ((this.ratio - 1) / -2);
+      return element.clientWidth * ((this.ratio - 1) / -2)
     },
     animateSlideTransition(callback) {
       this.$refs.slides.forEach((slide) => {
-        callback(slide);
-      });
+        callback(slide)
+      })
     },
     containerTransition() {
       // Triggered by 'transitionend' event from slider container
-      this.isSliding = false;
+      this.isSliding = false
     },
     popShowcase(selectedSlide) {
-      const selectedRect = selectedSlide.getBoundingClientRect();
-      const showcaseWidth = selectedRect.left - this.bodyMarginLeft;
+      const selectedRect = selectedSlide.getBoundingClientRect()
+      const showcaseWidth = selectedRect.left - this.bodyMarginLeft
       const showcaseStyle = {
         left: `${showcaseWidth}px`,
         width: `${selectedRect.width}px`,
         height: `${selectedRect.height}px`,
         'background-color': `${selectedSlide.style.backgroundColor}`,
+        'background-image': `${selectedSlide.style.backgroundImage}`,
+        'background-size': `${selectedSlide.style.backgroundSize}`
       };
       let transformOrigin = 'center center';
       if (this.selectedSlidePos.isFirst) {
-        transformOrigin = 'center left';
+        transformOrigin = 'center left'
       } else if (this.selectedSlidePos.isLast) {
-        transformOrigin = 'center right';
+        transformOrigin = 'center right'
       }
-      Object.assign(showcaseStyle, { 'transform-origin': transformOrigin });
-      this.setStyleProperty(this.$refs.showcase, showcaseStyle);
-      this.expandShowcase = true;
+      Object.assign(showcaseStyle, { 'transform-origin': transformOrigin })
+      this.setStyleProperty(this.$refs.showcase, showcaseStyle)
+      this.expandShowcase = true
     },
     hideShowcase(event) {
       if (event.currentTarget.classList.contains('expand')) {
-        this.expandShowcase = false;
+        this.expandShowcase = false
         this.animateSlideTransition((currentSlide) => {
-          this.setStyleProperty(currentSlide, { transform: '' });
+          this.setStyleProperty(currentSlide, { transform: '' })
         });
       }
     },
     resetContentContainer() {
-      this.setContentContainer();
-      this.updateContentContainer();
+      this.setContentContainer()
+      this.updateContentContainer()
     },
     setContentContainer() {
       if (window.matchMedia('(max-width: 480px)').matches) {
-        this.contentContainerSize = 2;
+        this.contentContainerSize = 2
       } else if (window.matchMedia('(max-width: 768px)').matches) {
-        this.contentContainerSize = 3;
+        this.contentContainerSize = 3
       } else if (window.matchMedia('(max-width:1024px)').matches) {
-        this.contentContainerSize = 4;
+        this.contentContainerSize = 4
       } else {
-        this.contentContainerSize = 6;
+        this.contentContainerSize = 6
       }
-      this.contentContainer = _.chunk(this.contentData, this.contentContainerSize);
+      this.contentContainer = _.chunk(this.items, this.contentContainerSize)
     },
     updateContentContainer() {
-      this.slideContainer = [-1, 0, 1];
-      this.setColor(this.slideContainer[0]);
-      this.setColor(this.slideContainer[1]);
-      this.setColor(this.slideContainer[2]);
+      this.slideContainer = [-1, 0, 1]
+      this.setColor(this.slideContainer[0])
+      this.setColor(this.slideContainer[1])
+      this.setColor(this.slideContainer[2])
     },
     setColor(containerIndex, callback) {
       // Helper function for the demo
       if (containerIndex > -1 && containerIndex < this.contentContainer.length) {
         this.$nextTick(() => {
           this.contentContainer[containerIndex].forEach((content, contentIndex) => {
-            const slideID = `#slide-${containerIndex}-${contentIndex}`;
-            const slide = this.$el.querySelector(slideID);
-            const offset = contentIndex * 7;
-            const hue = (containerIndex * 20) % 360;
-            this.setStyleProperty(slide, { 'background-color': `hsl(${hue},${40 + offset}%,${50 + offset}%)` });
+            const slideID = `#slide-${containerIndex}-${contentIndex}`
+            const slide = this.$el.querySelector(slideID)
+            const offset = contentIndex * 7
+            const hue = (containerIndex * 20) % 360
+            // this.setStyleProperty(slide, { 'background-color': `hsl(${hue},${40 + offset}%,${50 + offset}%)` })
           });
           if (callback) {
-            callback();
+            callback()
           }
-        });
+        })
       }
     },
     setStyleProperty(element, styles) {
-      Object.assign(element.style, styles);
+      Object.assign(element.style, styles)
     },
+    getBorderStyle(source) {
+      if (source === 'Amazon') {
+        return 'blue'
+      } else if (source === 'Netflix') {
+        return 'red'
+      } else if (source === 'Hulu') {
+        return 'green'
+      }
+      return 'gray'
+    }
   },
   mounted() {
-    this.$el.style.setProperty('--ratio', `${this.ratio}`);
+    this.$el.style.setProperty('--ratio', `${this.ratio}`)
     this.slideContainer.forEach((container) => {
-      this.setColor(container);
+      this.setColor(container)
     });
-    window.addEventListener('resize', _.debounce(this.resetContentContainer, 100));
+    window.addEventListener('resize', _.debounce(this.resetContentContainer, 100))
   },
   destroyed() {
-    window.removeEventListener('resize', _.debounce(this.resetContentContainer, 100));
+    window.removeEventListener('resize', _.debounce(this.resetContentContainer, 100))
   },
   created() {
-    this.setContentContainer();
-  }  
+    this.setContentContainer()
+  } 
 }
 </script>
 
@@ -286,6 +303,7 @@ $slider-width: $slider-container-width * 3;
   --duration: 0.4s;
   --cubic-bezier: cubic-bezier( 0.5 , 0, 0.1 ,1);
   position: relative;
+  margin-bottom: 10vh;
 }
 .container * {
   box-sizing: border-box;
