@@ -1,7 +1,7 @@
 <template>
   <div class="container">
-    <div class="slide-button slide-button--right" @click="right"><i class="fa fa-chevron-right fa-2x" aria-hidden="true"></i></div>
-    <div class="slide-button slide-button--left" @click="left" v-if="infinityLoop"><i class="fa fa-chevron-left fa-2x" aria-hidden="true"></i></div>
+    <div class="slide-button slide-button--right" @click="right"><span class="fa">&gt;</span></div>
+    <div class="slide-button slide-button--left" @click="left" v-if="infinityLoop"><span class="fa">&lt;</span></div>
     <div class="showcase" ref="showcase" v-on:mouseout="hideShowcase" :class="{expand:expandShowcase}"></div>
     <div class="slider-wrapper" ref="wrapper">
       <transition-group class="slider" tag="div" name="list">
@@ -318,6 +318,9 @@ $slider-width: $slider-container-width * 3;
   z-index: 10;
 }
 .slide-button > .fa {
+  font-size: 24px;
+  font-weight: 900;
+  transform: scaleY(1.5);
   color:grey;
   position: absolute;
   top: 50%;
