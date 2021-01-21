@@ -316,16 +316,16 @@ $slider-width: $slider-container-width * 3;
   opacity: 0.6;
   position: absolute;
   z-index: 10;
+  cursor: pointer;
 }
 .slide-button > .fa {
   font-size: 24px;
   font-weight: 900;
-  transform: scaleY(1.5);
   color:grey;
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scaleY(1.5);
 }
 .slide-button.slide-button--left {
   left: 0;
